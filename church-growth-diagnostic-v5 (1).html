@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Church Growth Diagnostic — Waymark</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --ink-light: #555;
+    --paper: #faf8f4;
+    --cream: #f2ede4;
+    --accent: #2d5a3d;
+    --accent-light: #4a8a5f;
+    --accent-pale: #e8f2ec;
+    --gold: #b8943f;
+    --gold-pale: #f9f3e8;
+    --rule: #d8d0c4;
+    --danger: #c0392b;
+    --warn: #e67e22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--paper);
+  }
+  .logo span { color: var(--gold); }
+  header p {
+    font-size: 13px;
+    color: #999;
+    font-weight: 300;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    background: var(--cream);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 40px;
+  }
+  .progress-bar {
+    height: 3px;
+    background: var(--accent);
+    transition: width 0.5s ease;
+    border-radius: 2px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0 6px;
+    font-size: 12px;
+    color: var(--ink-light);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 60px 40px 100px;
+  }
+
+  /* ── INTRO ── */
+  .intro { text-align: center; padding: 20px 0 60px; }
+  .intro h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  .intro h1 em { font-style: normal; color: var(--accent); }
+  .intro p {
+    max-width: 520px;
+    margin: 0 auto 36px;
+    color: var(--ink-light);
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+  .intro-meta {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 44px;
+    flex-wrap: wrap;
+  }
+  .intro-meta-item {
+    text-align: center;
+  }
+  .intro-meta-item strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .intro-meta-item span {
+    font-size: 12px;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+  .btn-start {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 16px 44px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .btn-start:hover { background: var(--accent-light); }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .section-header p {
+    color: var(--ink-light);
+    font-size: 15px;
+    font-weight: 300;
+  }
+
+  /* ── QUESTIONS ── */
+  .question-block {
+    margin-bottom: 32px;
+    padding: 28px 32px;
+    background: white;
+    border: 1px solid var(--rule);
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .question-block.answered { border-left-color: var(--accent); }
+  .question-block.unanswered-flag { border-left-color: var(--danger); border-left-width: 3px; }
+
+  .question-text {
+    font-size: 16px;
+    font-weight: 400;
+    margin-bottom: 20px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .question-text .q-num {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-light);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .scale-wrap {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .scale-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+  .scale-option input { display: none; }
+  .scale-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 52px;
+    border: 1.5px solid var(--rule);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink-light);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .scale-option:hover .scale-btn {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .scale-option input:checked + .scale-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .scale-label {
+    font-size: 10px;
+    color: var(--ink-light);
+    margin-top: 6px;
+    text-align: center;
+    font-weight: 400;
+  }
+
+  /* ── NAV BUTTONS ── */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 48px;
+  }
+  .btn-nav {
+    padding: 13px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+    border: none;
+  }
+  .btn-back {
+    background: transparent;
+    border: 1.5px solid var(--rule);
+    color: var(--ink-light);
+  }
+  .btn-back:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-next {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-next:hover { background: var(--accent-light); }
+  .btn-next:disabled { background: var(--rule); cursor: not-allowed; }
+
+  /* ── EMAIL STEP ── */
+  .email-step { text-align: center; padding: 20px 0; }
+  .email-step h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .email-step p {
+    color: var(--ink-light);
+    font-size: 16px;
+    font-weight: 300;
+    max-width: 480px;
+    margin: 0 auto 10px;
+    line-height: 1.7;
+  }
+  .value-prop {
+    background: var(--accent-pale);
+    border: 1px solid #c5dece;
+    padding: 20px 28px;
+    margin: 28px auto;
+    max-width: 480px;
+    text-align: left;
+  }
+  .value-prop p {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+    margin: 0;
+    text-align: left;
+  }
+  .value-prop p + p { margin-top: 6px; }
+  .value-prop .vp-icon { margin-right: 8px; }
+
+  .email-form-wrap {
+    max-width: 400px;
+    margin: 0 auto 12px;
+  }
+  .email-form-wrap label {
+    display: block;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 8px;
+  }
+  .email-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--rule);
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    outline: none;
+  }
+  .email-input:focus { border-color: var(--accent); }
+  .skip-link {
+    display: block;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--ink-light);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .skip-link:hover { color: var(--ink); }
+
+  /* ── RESULTS ── */
+  .results-header { text-align: center; margin-bottom: 48px; }
+  .results-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 38px;
+    margin-bottom: 10px;
+  }
+  .results-header p { color: var(--ink-light); font-weight: 300; }
+
+  .overall-score {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 36px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .overall-score-left h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 6px;
+    color: #ccc;
+  }
+  .overall-score-left .big-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--gold);
+  }
+  .overall-score-left .big-score span {
+    font-size: 28px;
+    color: #888;
+    font-weight: 400;
+  }
+
+  .share-insight-card {
+    background: var(--gold-pale);
+    border: 1.5px solid var(--gold);
+    padding: 24px 28px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .share-insight-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .share-insight-card p {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+  .btn-share {
+    background: var(--ink);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .btn-share:hover { background: #333; }
+  .copy-confirm {
+    margin-left: 12px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .copy-confirm.show { opacity: 1; }
+  .overall-score-right {
+    max-width: 320px;
+  }
+  .overall-score-right p { font-size: 15px; color: #bbb; font-weight: 300; line-height: 1.6; }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .cat-card {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 24px 28px;
+    position: relative;
+  }
+  .cat-card.lowest {
+    border: 2px solid var(--gold);
+    background: var(--gold-pale);
+  }
+  .lowest-badge {
+    position: absolute;
+    top: -1px;
+    right: 20px;
+    background: var(--gold);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+  }
+  .cat-name {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 10px;
+  }
+  .cat-score-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .cat-score-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .cat-score-num.score-high { color: var(--accent); }
+  .cat-score-num.score-mid { color: var(--warn); }
+  .cat-score-num.score-low { color: var(--danger); }
+  .cat-score-denom {
+    font-size: 14px;
+    color: var(--ink-light);
+    padding-bottom: 4px;
+  }
+  .cat-bar-bg {
+    height: 6px;
+    background: var(--cream);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+  .fill-high { background: var(--accent); }
+  .fill-mid { background: var(--warn); }
+  .fill-low { background: var(--danger); }
+
+  /* ── ACTION POINTS ── */
+  .action-section { margin-bottom: 60px; }
+  .action-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    margin-bottom: 6px;
+  }
+  .action-section > p {
+    color: var(--ink-light);
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+
+  .action-area {
+    background: white;
+    border: 1px solid var(--rule);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .action-area-header {
+    background: var(--ink);
+    color: white;
+    padding: 18px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .action-area-header h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .action-area-header .score-chip {
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.15);
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+  .do-this-first {
+    background: var(--gold-pale);
+    border-bottom: 1.5px solid var(--gold);
+    padding: 18px 28px;
+  }
+  .dtf-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .do-this-first p {
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .action-items {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .action-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .action-num {
+    min-width: 28px;
+    height: 28px;
+    background: var(--accent-pale);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 2px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .action-item p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .action-item strong { color: var(--accent); }
+
+  /* ── DOWNLOAD SECTION ── */
+  .download-section {
+    text-align: center;
+    padding: 48px 40px;
+    border: 1px solid var(--rule);
+    background: white;
+    margin-bottom: 60px;
+  }
+  .download-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .download-section p {
+    color: var(--ink-light);
+    font-weight: 300;
+    margin-bottom: 24px;
+  }
+  .btn-download {
+    background: var(--gold);
+    color: white;
+    border: none;
+    padding: 16px 44px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+    margin-right: 12px;
+  }
+  .btn-download:hover { background: #a07c30; }
+
+  /* ── CTA ── */
+  .cta-section {
+    background: var(--ink);
+    color: white;
+    padding: 48px 48px;
+    text-align: center;
+  }
+  .cta-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .cta-section p { color: #aaa; font-weight: 300; margin-bottom: 28px; font-size: 16px; }
+  .btn-cta {
+    background: var(--gold);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-cta:hover { background: #a07c30; }
+
+  /* ── VALIDATION ── */
+  .validation-msg {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+  }
+  .validation-msg.show { display: block; }
+
+  /* ── UTIL ── */
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    header { padding: 16px 20px; }
+    main { padding: 40px 20px 80px; }
+    .intro h1 { font-size: 30px; }
+    .overall-score { flex-direction: column; }
+    .progress-bar-wrap { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Way<span>mark</span></div>
+  <p>Church Growth Diagnostic</p>
+</header>
+
+<div class="progress-bar-wrap" id="progressWrap">
+  <div class="progress-label">
+    <span id="progressLabel">Getting started</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar" id="progressBar" style="width:0%"></div>
+</div>
+
+<main id="mainContent">
+
+  <!-- INTRO -->
+  <div id="step-intro" class="intro">
+    <h1>How well is your church<br><em>positioned to grow?</em></h1>
+    <p>This 15-minute diagnostic assesses seven evidence-based drivers of church growth. You'll receive a personalised score and specific action points for your lowest-performing areas.</p>
+    <div class="intro-meta">
+      <div class="intro-meta-item">
+        <strong>21</strong>
+        <span>Questions</span>
+      </div>
+      <div class="intro-meta-item">
+        <strong>7</strong>
+        <span>Growth areas</span>
+      </div>
+      <div class="intro-meta-item">
+        <strong>15 min</strong>
+        <span>To complete</span>
+      </div>
+    </div>
+    <button class="btn-start" onclick="startDiagnostic()">Begin the diagnostic →</button>
+  </div>
+
+  <!-- QUESTION SECTIONS (steps 0–5) -->
+  <div id="step-questions" class="hidden">
+    <div class="section-header">
+      <div class="section-tag" id="sectionTag"></div>
+      <h2 id="sectionTitle"></h2>
+      <p id="sectionDesc"></p>
+    </div>
+    <div id="questionsContainer"></div>
+    <div class="validation-msg" id="validationMsg">Please answer all questions before continuing.</div>
+    <div class="nav-row">
+      <button class="btn-nav btn-back" id="btnBack" onclick="goBack()">← Back</button>
+      <button class="btn-nav btn-next" id="btnNext" onclick="goNext()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- EMAIL STEP -->
+  <div id="step-email" class="hidden email-step">
+    <h2>One more thing</h2>
+    <p>Your diagnostic is complete. Enter your email to receive how your church ranks against all others who've taken this assessment.</p>
+    <div class="value-prop">
+      <p><span class="vp-icon">📊</span> <strong>Benchmarking report</strong> — see where you stand relative to other churches.</p>
+      <p><span class="vp-icon">📩</span> <strong>Sent directly to your inbox</strong> — no account required.</p>
+      <p><span class="vp-icon">🔒</span> <strong>No spam.</strong> Just one email with your benchmark data.</p>
+    </div>
+    <div class="email-form-wrap">
+      <label for="emailInput">Your email address</label>
+      <input type="email" id="emailInput" class="email-input" placeholder="pastor@yourchurch.org" />
+      <button class="btn-nav btn-next" style="width:100%" onclick="submitEmail()">See my results →</button>
+    </div>
+    <span class="skip-link" onclick="showResults()">Skip — take me to results without benchmarking</span>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="step-results" class="hidden">
+    <div class="results-header">
+      <h2>Your Diagnostic Results</h2>
+      <p id="resultsSubhead">Here's how your church is performing across the seven growth drivers.</p>
+    </div>
+
+    <div class="overall-score">
+      <div class="overall-score-left">
+        <h3>Overall growth readiness</h3>
+        <div class="big-score" id="overallScore">—<span>/105</span></div>
+      </div>
+      <div class="overall-score-right">
+        <p id="overallSummary"></p>
+      </div>
+    </div>
+
+    <div class="share-insight-card" id="shareInsightCard">
+      <div class="share-insight-label">📊 Worth sharing with another leader</div>
+      <p id="shareInsightText"></p>
+      <button class="btn-share" id="btnCopyInsight" onclick="copyShareableInsight()">Copy this insight</button>
+      <span class="copy-confirm" id="copyConfirm">Copied ✓</span>
+    </div>
+
+    <div class="categories-grid" id="categoriesGrid"></div>
+
+    <div class="action-section">
+      <h3>Your priority action points</h3>
+      <p>Based on your two lowest-scoring areas, here are your most impactful next steps.</p>
+      <div id="actionAreas"></div>
+    </div>
+
+    <div class="download-section">
+      <h3>Download your report</h3>
+      <p>Save a PDF copy of your scores and action points to share with your leadership team.</p>
+      <button class="btn-download" onclick="generatePDF()">↓ Download PDF report</button>
+    </div>
+
+    <div class="cta-section">
+      <h3>Ready to go deeper?</h3>
+      <p>A 45-minute discovery call with Waymark can help you build a concrete growth roadmap for your church.</p>
+      <a href="mailto:waymarkforchurches@gmail.com" class="btn-cta">Book a discovery call</a>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────
+// Replace this with your deployed Google Apps Script Web App URL.
+// See DEPLOYMENT_GUIDE.md for setup instructions.
+const SUBMISSION_ENDPOINT = 'https://hook.eu1.make.com/mahs1iji6e95idja8sub09ol6b3uv871';
+
+// ─────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────
+
+const sections = [
+  {
+    id: 'clarity',
+    tag: 'Area 1 of 7',
+    title: 'Vision & Clarity',
+    desc: 'A clear, compelling vision is the single strongest predictor of sustained church growth. This section assesses how well your church articulates why it exists and where it\'s going.',
+    questions: [
+      'Our church has a mission statement that our congregation can articulate without prompting.',
+      'Our senior leadership regularly communicates a clear picture of where the church is headed in the next 3–5 years.',
+      'New visitors can quickly understand what our church is about and who it\'s for.'
+    ]
+  },
+  {
+    id: 'outreach',
+    tag: 'Area 2 of 7',
+    title: 'Outreach & Evangelism',
+    desc: 'Growing churches consistently reach people outside their existing congregation. This section examines how intentionally and effectively your church pursues those who aren\'t yet part of it.',
+    questions: [
+      'Our church has an active strategy for reaching people in our local community who don\'t attend church.',
+      'In the last 12 months, we have seen people make new commitments to faith through our church.',
+      'Our congregation regularly invites friends, family or colleagues to church events or services.'
+    ]
+  },
+  {
+    id: 'welcome',
+    tag: 'Area 3 of 7',
+    title: 'Welcome & Assimilation',
+    desc: 'Research consistently shows that first-time visitors decide whether they\'ll return within minutes of arriving. This section measures how effectively your church turns visitors into connected members.',
+    questions: [
+      'We have a clear, intentional process for welcoming and following up with first-time visitors.',
+      'Most visitors who attend two or three times go on to become regular members of our church.',
+      'New members are connected to relationships within the church within their first 90 days.'
+    ]
+  },
+  {
+    id: 'community',
+    tag: 'Area 4 of 7',
+    title: 'Community & Belonging',
+    desc: 'Belonging is the most powerful retention mechanism a church has. People stay where they feel known. This section examines the depth of community infrastructure in your church.',
+    questions: [
+      'The majority of our regular attendees are connected to a small group, life group, or similar community.',
+      'Our church has intentional structures that help people build meaningful relationships beyond Sunday.',
+      'People in our church would say they have genuine friendships — not just acquaintances — within the congregation.'
+    ]
+  },
+  {
+    id: 'digital',
+    tag: 'Area 5 of 7',
+    title: 'Digital Presence & Communications',
+    desc: 'For most people today, a church\'s online presence is their first point of contact. This section assesses how effectively your church uses digital channels to reach and retain people.',
+    questions: [
+      'Our website clearly communicates who we are, what to expect, and how to get involved — in language that would resonate with someone who has never been to church.',
+      'We consistently use social media or digital channels to build relationships and reach new people — not just to broadcast announcements.',
+      'Our communications (email, social, website) are clear, consistent, and reflect the quality of what we offer in person.'
+    ]
+  },
+  {
+    id: 'leadership',
+    tag: 'Area 6 of 7',
+    title: 'Leadership & Team Capacity',
+    desc: 'Sustained growth requires a leadership culture that develops people and distributes responsibility. This section examines whether your team has the capacity and structure to grow with the church.',
+    questions: [
+      'Our church actively develops and raises up new leaders from within the congregation.',
+      'Leadership responsibilities in our church are distributed across a team, not concentrated in one or two people.',
+      'We have the staff or volunteer capacity to absorb and serve a significantly larger congregation.'
+    ]
+  },
+  {
+    id: 'engagement',
+    tag: 'Area 7 of 7',
+    title: 'Community Engagement',
+    desc: 'Growing churches know their community as well as they know their congregation. This section assesses how intentionally your church engages with the people outside its walls — and how well-positioned it is to reach them.',
+    questions: [
+      'Our church has a clear picture of the demographic profile and primary social needs of the community within our immediate area.',
+      'We have intentional, active programmes or initiatives designed to serve people outside our existing congregation.',
+      'People in our surrounding community would describe our church as a visible and positive presence in the neighbourhood.'
+    ]
+  }
+];
+
+// RECOMMENDATIONS — 4 per section
+const recommendations = {
+  clarity: [
+    { title: 'Run a vision clarity audit', body: 'Survey 10–15 regular attendees with one question: "In your own words, what is this church\'s mission?" If you get 10 different answers, your mission isn\'t landing. Use the responses to identify the gap between what leadership intends and what the congregation hears.' },
+    { title: 'Create a single-sentence mission anchor', body: 'Distil your church\'s reason for existing into one plain-English sentence that a 14-year-old could understand and repeat. Not a theological statement — a directional one. Then embed it everywhere: bulletins, screens, staff meetings, onboarding.' },
+    { title: 'Build a 12-month vision rhythm', body: 'Establish at least four moments per year when the senior pastor explicitly returns to the vision — not just referencing it, but articulating where the church is in the story and where it\'s heading. Growth-oriented churches treat vision communication as a discipline, not an event.' },
+    { title: 'Translate vision into concrete milestones', body: 'Vague vision erodes trust. Alongside your qualitative mission, set 2–3 measurable milestones for the next 12 months (e.g. "launch a second service," "grow small group participation by 30%"). Share them publicly. Progress breeds momentum.' }
+  ],
+  outreach: [
+    { title: 'Map your evangelistic funnel', body: 'Track how people move from "first contact" to "regular attendee." Where do most people come from? Where do you lose them? Most churches can\'t answer this — but it\'s the single most important data set for growth. Even a simple spreadsheet tracking visitor sources is a starting point.' },
+    { title: 'Design a low-barrier entry point', body: 'Create at least one recurring event that is designed for people who would never come to a Sunday service — something social, accessible, and genuinely enjoyable. The goal isn\'t to evangelise at them; it\'s to give them a reason to show up. Relationships do the rest.' },
+    { title: 'Equip the congregation to invite', body: 'Most churchgoers want to invite friends but feel awkward about it. Create an "invitation culture" with simple tools: a card to hand someone, a social post they can share, a clear phrase they can use. Remove the friction. A 10% increase in invitations from existing members can transform growth.' },
+    { title: 'Run a community needs audit', body: 'Interview 10 people who live within 5km of your church building who don\'t attend. Ask them what they\'re looking for, what they\'re missing, what they think of the church. Use those conversations to redesign how you present yourselves to the neighbourhood.' }
+  ],
+  welcome: [
+    { title: 'Design a first-time visitor journey', body: 'Map every touchpoint from parking lot to follow-up email. Who greets them? Where do they go? What do they receive? Is there a clear "next step"? Most churches have a great Sunday experience but no intentional path forward. The first 7 days after a visit are critical.' },
+    { title: 'Implement a same-week follow-up', body: 'Contact every first-time visitor within 48 hours — not with a hard sell, but with a genuine, warm message from a person (not a system). A short handwritten note, a personal email, or a text from a team member outperforms any automated sequence. The bar is simply: did someone who matters at the church acknowledge that you came?' },
+    { title: 'Create a 90-day connection pathway', body: 'Design a clear sequence for new members: connect class in week 2–4, introduction to a small group by week 6–8, a first volunteer opportunity by week 10–12. The goal is belonging, not busyness — but belonging requires intentional structure. Document this pathway and assign ownership.' },
+    { title: 'Train a dedicated welcome team', body: 'Your welcome experience is only as good as the people delivering it. Invest in training a team specifically for hospitality — not just ushers, but people who are genuinely warm, trained to spot newcomers, and empowered to make judgment calls. This team is your first impression.' }
+  ],
+  community: [
+    { title: 'Audit your small group health', body: 'If fewer than 50% of your regular attendees are in a small group, treat it as a growth emergency. Research shows small group participation is the strongest predictor of both discipleship and retention. Survey the reasons people aren\'t in groups — cost, timing, social anxiety — and redesign accordingly.' },
+    { title: 'Lower the barrier to connection', body: 'The most effective small groups are low-commitment to enter. Consider running 6-week "taster" groups on a specific topic or interest before asking for ongoing commitment. People need a risk-free way to try belonging before they invest in it.' },
+    { title: 'Build intentional third places', body: 'Beyond Sunday and small groups, create regular social contexts with no agenda: a monthly communal meal, a sports team, a parents\' group. These "third places" generate the incidental relationships that make people feel genuinely known — and they\'re the environments most effective for reaching people outside the church.' },
+    { title: 'Create visible stories of belonging', body: 'Feature stories of community and friendship in your regular communications. When people outside the church see genuine belonging — not polished marketing — it becomes your most effective evangelism tool. Authenticity is the currency that resonates with the generation you\'re trying to reach.' }
+  ],
+  digital: [
+    { title: 'Audit your website as a stranger', body: 'Visit your website as if you\'ve never heard of your church. Within 30 seconds, can you tell: What kind of church is this? What should I expect on Sunday? Is it for someone like me? How do I get there? Most church websites answer none of these questions clearly. Start there.' },
+    { title: 'Shift from broadcasting to building', body: 'The majority of churches use social media as a notice board. The churches growing online use it to build relationships — responding to comments, sharing behind-the-scenes moments, asking questions, celebrating people. Allocate 20% of your social content to genuine interaction rather than announcements.' },
+    { title: 'Invest in one video touchpoint', body: 'A short (90-second), warm welcome video from the senior pastor — embedded on the homepage — is one of the highest-ROI digital assets a church can produce. It answers the question "is this person like me?" before someone has taken any risk. Update it annually.' },
+    { title: 'Establish a communications rhythm', body: 'Inconsistent communication signals an organisation that isn\'t confident in itself. Build a simple weekly rhythm: one email, three social posts, one story. Consistency builds trust. Trust lowers the barrier to showing up.' }
+  ],
+  leadership: [
+    { title: 'Build a leadership pipeline', body: 'Identify five people in your congregation right now who have leadership potential and aren\'t yet in a formal role. Invest in them with one-on-one time, specific responsibilities, and honest feedback. The churches that grow sustainably are always producing more leaders than they currently need.' },
+    { title: 'Audit leadership concentration', body: 'If the senior pastor is involved in every significant decision, the church cannot grow beyond the pastor\'s personal bandwidth. Map your decision-making: what decisions require you, what can be delegated? Then deliberately redistribute authority. Releasing control is the prerequisite for growth.' },
+    { title: 'Invest in staff capacity before you need it', body: 'Most churches hire reactively — after they\'ve already outgrown their team. The churches that break growth ceilings hire ahead of the curve, especially in pastoral care and operations. Model out what your team would need to look like at 150% of current size, and start building toward it.' },
+    { title: 'Create a leadership culture document', body: 'Write down explicitly what your church values in a leader, how decisions get made, and how conflict is resolved. Shared cultural expectations reduce friction, accelerate onboarding, and make it far easier to develop and retain talented people. Most churches operate on unwritten rules — make them visible.' }
+  ],
+  engagement: [
+    { title: 'Build a community demographic baseline', body: 'Use publicly available census data and local government community plans to answer three questions: what is the demographic profile of your surrounding area, what are the primary social challenges, and which groups are most isolated? This desk research takes a few hours and costs nothing — but it tells you whether your church\'s programmes reflect the community you\'re embedded in, or only the one you already have.' },
+    { title: 'Have ten conversations outside your congregation', body: 'No desk research replaces direct listening. This month, have ten genuine conversations with neighbours, local business owners, or community workers who don\'t attend your church. Ask what they love about the neighbourhood, what they find hard, and what they think of the church. Don\'t pitch or defend — simply listen. The answers will be more useful than any strategy document.' },
+    { title: 'Create one community-facing initiative', body: 'Design a single recurring initiative that serves people outside your congregation — something genuinely useful, consistently delivered, with no expectation of attendance. A community meal, a parenting group, a neighbourhood sports team. Run it for six months before evaluating. Presence before programme is the principle: be known and trusted before you invite.' },
+    { title: 'Ask the closure question', body: 'Gather your leadership team and ask one question: if our church closed tomorrow, what would our community actually lose? Not what we believe we offer — what would genuinely be missed by people who don\'t attend? The gap between your answer and the honest community answer is your community engagement strategy.' }
+  ]
+};
+
+// DO THIS FIRST — one verifiable-within-the-hour action per category.
+// These are designed to be checked, not just read: each asks the reader
+// to go find out something specific and true about their own church
+// right now, rather than offering advice in the abstract.
+const doThisFirst = {
+  clarity: 'Right now, message or call three people on your staff or leadership team — separately, so they can\'t compare notes — and ask them to text back, in one sentence, what they think your church\'s mission is. If you get three different answers, you\'ve just confirmed your priority area in under an hour, with your own evidence rather than ours.',
+  outreach: 'Check your records right now: how many currently active people joined in the last 12 months by visiting cold — not transferring in, not returning, not a family member of an existing attendee? If you can\'t answer within ten minutes, that absence of data is itself the finding.',
+  welcome: 'Find your record of last month\'s first-time visitors — a connection card pile, a spreadsheet, a memory if nothing else exists — and check how many of them came a second time. Do this before reading further. Most pastors have never actually counted this, and the number is usually lower than they would have guessed out loud.',
+  community: 'Ask whoever runs your small groups, right now, what percentage of your regular attendees are currently in one. If they have to guess rather than check a list, you\'ve found your actual starting point: not "are our groups healthy" but "do we even know who is and isn\'t connected."',
+  digital: 'Open your church website on your phone right now, away from your desk, and time how long it takes you to find next Sunday\'s service time and address as if you\'d never seen the site before. If it takes more than 60 seconds, or you have to scroll past anything irrelevant to a first-time visitor to find it, you\'ve just verified your priority area yourself.',
+  leadership: 'Pull up your last seven days of calendar entries and count how many decisions, conversations, or tasks genuinely required you personally — your specific authority, relationship, or judgment — versus how many existed on your calendar mostly because no one else currently owns them. Be honest rather than generous with yourself.',
+  engagement: 'Call or message one person who lives near your church but has never attended, right now if you can think of someone — a neighbour, a local shop owner, a school contact — and ask them one question: "what do you think our church does?" Their answer, not your assumption about their answer, is your actual starting point.'
+};
+
+
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let currentSection = 0;
+let answers = {}; // key: "sectionId-qIndex", value: 1-5
+let userEmail = '';
+let churchName = '';
+
+// ─────────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────────
+function startDiagnostic() {
+  document.getElementById('step-intro').classList.add('hidden');
+  document.getElementById('step-questions').classList.remove('hidden');
+  document.getElementById('progressWrap').style.display = '';
+  currentSection = 0;
+  renderSection();
+}
+
+function renderSection() {
+  const sec = sections[currentSection];
+  document.getElementById('sectionTag').textContent = sec.tag;
+  document.getElementById('sectionTitle').textContent = sec.title;
+  document.getElementById('sectionDesc').textContent = sec.desc;
+
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+
+  sec.questions.forEach((q, qi) => {
+    const key = `${sec.id}-${qi}`;
+    const currentVal = answers[key];
+    const block = document.createElement('div');
+    block.className = `question-block ${currentVal ? 'answered' : ''}`;
+    block.id = `qblock-${key}`;
+
+    const labels = ['Not at all', 'Rarely', 'Sometimes', 'Often', 'Consistently'];
+    let scaleHTML = '';
+    for (let v = 1; v <= 5; v++) {
+      const checked = currentVal === v ? 'checked' : '';
+      scaleHTML += `
+        <label class="scale-option">
+          <input type="radio" name="${key}" value="${v}" ${checked} onchange="recordAnswer('${key}', ${v})">
+          <div class="scale-btn">${v}</div>
+          <div class="scale-label">${v === 1 ? labels[0] : v === 5 ? labels[4] : ''}</div>
+        </label>`;
+    }
+
+    block.innerHTML = `
+      <div class="question-text">
+        <span class="q-num">Question ${qi + 1}</span>
+        ${q}
+      </div>
+      <div class="scale-wrap">${scaleHTML}</div>`;
+    container.appendChild(block);
+  });
+
+  // Progress
+  const totalSections = sections.length;
+  const pct = Math.round((currentSection / totalSections) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressLabel').textContent = `${sec.title}`;
+
+  // Back button
+  document.getElementById('btnBack').style.visibility = currentSection === 0 ? 'hidden' : 'visible';
+  document.getElementById('validationMsg').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function recordAnswer(key, val) {
+  answers[key] = val;
+  const block = document.getElementById(`qblock-${key}`);
+  if (block) block.classList.add('answered');
+}
+
+function goNext() {
+  const sec = sections[currentSection];
+  const allAnswered = sec.questions.every((_, qi) => answers[`${sec.id}-${qi}`]);
+  if (!allAnswered) {
+    document.getElementById('validationMsg').classList.add('show');
+    // Flag unanswered
+    sec.questions.forEach((_, qi) => {
+      const key = `${sec.id}-${qi}`;
+      const block = document.getElementById(`qblock-${key}`);
+      if (!answers[key]) block.classList.add('unanswered-flag');
+      else block.classList.remove('unanswered-flag');
+    });
+    return;
+  }
+  document.getElementById('validationMsg').classList.remove('show');
+  currentSection++;
+  if (currentSection < sections.length) {
+    renderSection();
+  } else {
+    // Move to email step
+    document.getElementById('step-questions').classList.add('hidden');
+    document.getElementById('step-email').classList.remove('hidden');
+    document.getElementById('progressBar').style.width = '95%';
+    document.getElementById('progressPct').textContent = '95%';
+    document.getElementById('progressLabel').textContent = 'Almost done';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function goBack() {
+  if (currentSection > 0) {
+    currentSection--;
+    renderSection();
+  }
+}
+
+function submitEmail() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('emailInput').style.borderColor = 'var(--danger)';
+    return;
+  }
+  userEmail = email;
+  submitDiagnosticData(email);
+  showResults();
+}
+
+async function submitDiagnosticData(email) {
+  // Sends the email + diagnostic scores to the Google Sheet via Apps Script.
+  // Fails silently from the user's perspective — a failed submission should
+  // never block them from seeing their results or downloading their PDF.
+  if (!SUBMISSION_ENDPOINT || SUBMISSION_ENDPOINT.indexOf('PASTE_YOUR') === 0) {
+    console.warn('Waymark diagnostic: SUBMISSION_ENDPOINT not configured. Skipping data capture.');
+    return;
+  }
+
+  try {
+    const scores = computeScores();
+    const totalScore = scores.reduce((a, b) => a + b.score, 0);
+    const maxScore = scores.reduce((a, b) => a + b.max, 0);
+
+    const payload = {
+      timestamp: new Date().toISOString(),
+      email: email,
+      overallScore: totalScore,
+      maxScore: maxScore,
+      scores: scores.reduce((obj, s) => {
+        obj[s.id] = s.score;
+        return obj;
+      }, {})
+    };
+
+    // Make webhooks don't return CORS headers browsers require for cors
+    // mode, so we use no-cors which sends the payload without reading
+    // the response — correct for a fire-and-forget webhook submission.
+    await fetch(SUBMISSION_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    // Submission failures should never interrupt the user's experience.
+    // Log for your own debugging; the PDF and on-screen results still work.
+    console.error('Waymark diagnostic: failed to submit data.', err);
+  }
+}
+
+function showResults() {
+  document.getElementById('step-email').classList.add('hidden');
+  document.getElementById('step-results').classList.remove('hidden');
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('progressPct').textContent = '100%';
+  document.getElementById('progressLabel').textContent = 'Complete';
+  renderResults();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────
+//  SCORING
+// ─────────────────────────────────────────────
+function computeScores() {
+  return sections.map(sec => {
+    let total = 0;
+    sec.questions.forEach((_, qi) => {
+      total += answers[`${sec.id}-${qi}`] || 0;
+    });
+    return { id: sec.id, title: sec.title, score: total, max: sec.questions.length * 5 };
+  });
+}
+
+function getScoreClass(score, max) {
+  const pct = score / max;
+  if (pct >= 0.7) return 'high';
+  if (pct >= 0.4) return 'mid';
+  return 'low';
+}
+
+function getOverallSummary(totalScore, maxScore) {
+  const pct = totalScore / maxScore;
+  if (pct >= 0.75) return 'Your church is well-positioned for growth. Your foundations are strong across most areas — the work now is in optimising and scaling what\'s working, and closing the gaps in your two priority areas.';
+  if (pct >= 0.55) return 'Your church has real strengths to build on, with clear opportunities to develop. Focused improvement in your two priority areas will unlock significant growth potential that is already present in your context.';
+  if (pct >= 0.35) return 'Your church is in a growth learning phase. The factors that drive growth are learnable, and the distance between where you are and where you could be is shorter than it might feel right now. Your two priority areas below are the place to start.';
+  return 'Your diagnostic reveals significant growth opportunities across several areas. This is a moment to invest seriously in the foundations — with the right support and focus, rapid and meaningful improvement is possible.';
+}
+
+// SHAREABLE STATUS INSIGHT
+// In the absence of a large enough cross-church dataset to benchmark
+// against yet, this generates a self-comparison: the gap between a
+// church's strongest and weakest area, framed as a standalone, slightly
+// surprising statement worth repeating to another leader. This is
+// designed to work as a real insight on its own, not as a placeholder
+// for a future benchmark stat — it doesn't get "replaced" later so much
+// as supplemented by relative benchmarking once enough responses exist.
+function getShareableInsight(scores) {
+  const sorted = [...scores].sort((a, b) => (b.score / b.max) - (a.score / a.max));
+  const strongest = sorted[0];
+  const weakest = sorted[sorted.length - 1];
+  const strongPct = Math.round((strongest.score / strongest.max) * 100);
+  const weakPct = Math.round((weakest.score / weakest.max) * 100);
+  const gap = strongPct - weakPct;
+
+  if (gap < 15) {
+    return `Your scores are unusually even across all seven areas — within ${gap} percentage points of each other. Most churches have one clear strength and one clear weak spot. Yours doesn't. That's worth a conversation with your team: is that consistency, or is it that no single area has had focused attention yet?`;
+  }
+
+  return `Your church scores ${strongPct}% on ${strongest.title} but only ${weakPct}% on ${weakest.title} — a ${gap}-point gap between your strongest and weakest area. Most churches don't know where their own gap actually is until they measure it.`;
+}
+
+function copyShareableInsight() {
+  const text = document.getElementById('shareInsightText').textContent + ' (via the free Waymark Growth Diagnostic — waymarkforchurches.substack.com)';
+  navigator.clipboard.writeText(text).then(() => {
+    const confirm = document.getElementById('copyConfirm');
+    confirm.classList.add('show');
+    setTimeout(() => confirm.classList.remove('show'), 2000);
+  }).catch(() => {
+    // Clipboard API can fail in some contexts (e.g. non-HTTPS); fail silently
+    // rather than interrupting the user's results experience.
+  });
+}
+
+// ─────────────────────────────────────────────
+//  RENDER RESULTS
+// ─────────────────────────────────────────────
+function renderResults() {
+  const scores = computeScores();
+  const totalScore = scores.reduce((a, b) => a + b.score, 0);
+  const maxScore = scores.reduce((a, b) => a + b.max, 0);
+
+  // Overall
+  document.getElementById('overallScore').innerHTML = `${totalScore}<span>/${maxScore}</span>`;
+  document.getElementById('overallSummary').textContent = getOverallSummary(totalScore, maxScore);
+
+  // Shareable status insight
+  document.getElementById('shareInsightText').textContent = getShareableInsight(scores);
+
+  // Sort to find lowest 2
+  const sorted = [...scores].sort((a, b) => (a.score / a.max) - (b.score / b.max));
+  const lowestTwo = sorted.slice(0, 2).map(s => s.id);
+
+  // Category cards
+  const grid = document.getElementById('categoriesGrid');
+  grid.innerHTML = '';
+  scores.forEach(s => {
+    const cls = getScoreClass(s.score, s.max);
+    const isLowest = lowestTwo.includes(s.id);
+    const pct = Math.round((s.score / s.max) * 100);
+    const card = document.createElement('div');
+    card.className = `cat-card ${isLowest ? 'lowest' : ''}`;
+    card.innerHTML = `
+      ${isLowest ? '<div class="lowest-badge">Priority area</div>' : ''}
+      <div class="cat-name">${s.title}</div>
+      <div class="cat-score-row">
+        <div class="cat-score-num score-${cls}">${s.score}</div>
+        <div class="cat-score-denom">/ ${s.max}</div>
+      </div>
+      <div class="cat-bar-bg">
+        <div class="cat-bar-fill fill-${cls}" style="width:${pct}%"></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // Action areas
+  const actionDiv = document.getElementById('actionAreas');
+  actionDiv.innerHTML = '';
+  lowestTwo.forEach(id => {
+    const sec = sections.find(s => s.id === id);
+    const score = scores.find(s => s.id === id);
+    const recs = recommendations[id];
+    const area = document.createElement('div');
+    area.className = 'action-area';
+    area.innerHTML = `
+      <div class="action-area-header">
+        <h4>${sec.title}</h4>
+        <span class="score-chip">${score.score}/${score.max}</span>
+      </div>
+      <div class="do-this-first">
+        <div class="dtf-label">⚡ Do this first — verifiable within the hour</div>
+        <p>${doThisFirst[id]}</p>
+      </div>
+      <div class="action-items">
+        ${recs.map((r, i) => `
+          <div class="action-item">
+            <div class="action-num">${i + 1}</div>
+            <p><strong>${r.title}.</strong> ${r.body}</p>
+          </div>`).join('')}
+      </div>`;
+    actionDiv.appendChild(area);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  PDF GENERATION
+// ─────────────────────────────────────────────
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const scores = computeScores();
+  const totalScore = scores.reduce((a, b) => a + b.score, 0);
+  const maxScore = scores.reduce((a, b) => a + b.max, 0);
+  const sorted = [...scores].sort((a, b) => (a.score / a.max) - (b.score / b.max));
+  const lowestTwo = sorted.slice(0, 2).map(s => s.id);
+  const shareInsight = getShareableInsight(scores);
+
+  const LOGO_B64 = 'data:image/png;base64,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';
+  const LOGO_ASPECT = 4.65; // width / height of the cropped wordmark
+
+  const W = 210, H = 297, M = 16;
+  const CW = W - M * 2; // usable content width
+  let y = 0;
+
+  // ── Shared header band: logo + report label, used on both pages ──
+  function pageHeader(pageLabel) {
+    doc.setFillColor(26, 26, 26);
+    doc.rect(0, 0, W, 16, 'F');
+
+    // Logo, rendered in white-on-dark via a light gold tint so it reads
+    // clearly against the dark header band rather than disappearing.
+    const logoH = 6;
+    const logoW = logoH * LOGO_ASPECT;
+    try {
+      doc.addImage(LOGO_B64, 'PNG', M, 5, logoW, logoH);
+    } catch (e) {
+      // If image embedding fails for any reason, fall back to text so the
+      // PDF still generates correctly rather than breaking the download.
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+      doc.text('WAYMARK', M, 10);
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(180, 180, 180);
+    doc.text(pageLabel, W - M, 10, { align: 'right' });
+
+    return 22; // y-position where content should begin below the header
+  }
+
+  function sectionRule(yPos, label) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(26, 26, 26);
+    doc.text(label, M, yPos);
+    doc.setDrawColor(220, 208, 196);
+    doc.setLineWidth(0.4);
+    doc.line(M, yPos + 2.5, W - M, yPos + 2.5);
+    return yPos + 9;
+  }
+
+  // ════════════════════════════════════════════════════
+  // PAGE 1 — Summary, shareable insight, all 7 scores
+  // ════════════════════════════════════════════════════
+  y = pageHeader('Church Growth Diagnostic Report');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(26, 26, 26);
+  doc.text('Your Growth Readiness Report', M, y + 4);
+  y += 11;
+
+  const now = new Date();
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(120, 120, 120);
+  let preparedLine = `Generated ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  if (userEmail) preparedLine += `  ·  Prepared for ${userEmail}`;
+  doc.text(preparedLine, M, y + 2);
+  y += 10;
+
+  // Score box — compact, single row rather than a tall standalone block
+  doc.setFillColor(26, 26, 26);
+  doc.rect(M, y, CW, 24, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(184, 148, 63);
+  doc.text(`${totalScore}`, M + 8, y + 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(160, 160, 160);
+  doc.text(`/ ${maxScore}`, M + 24, y + 16);
+
+  doc.setFontSize(9);
+  doc.setTextColor(210, 210, 210);
+  const summary = getOverallSummary(totalScore, maxScore);
+  const sumLines = doc.splitTextToSize(summary, CW - 70);
+  doc.text(sumLines.slice(0, 3), M + 45, y + 7);
+  y += 30;
+
+  // Shareable insight callout
+  doc.setFillColor(250, 240, 222);
+  const insightLines = doc.splitTextToSize(shareInsight, CW - 16);
+  const insightBoxH = 8 + insightLines.length * 4.6;
+  doc.rect(M, y, CW, insightBoxH, 'F');
+  doc.setFillColor(184, 148, 63);
+  doc.rect(M, y, 1.5, insightBoxH, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(150, 110, 30);
+  doc.text('WORTH SHARING WITH ANOTHER LEADER', M + 6, y + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 50, 30);
+  doc.text(insightLines, M + 6, y + 10.5);
+  y += insightBoxH + 8;
+
+  // Scores by area — compact rows
+  y = sectionRule(y, 'Your Scores by Area');
+
+  scores.forEach(s => {
+    const isLowest = lowestTwo.includes(s.id);
+    const pct = s.score / s.max;
+
+    if (isLowest) {
+      doc.setFillColor(250, 243, 230);
+      doc.rect(M, y - 3, CW, 14, 'F');
+      doc.setFillColor(184, 148, 63);
+      doc.rect(M, y - 3, 1.2, 14, 'F');
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(isLowest ? 130 : 70, isLowest ? 95 : 70, isLowest ? 30 : 70);
+    const label = isLowest ? `${s.title.toUpperCase()}  [PRIORITY]` : s.title.toUpperCase();
+    doc.text(label, M + 4, y + 2.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(26, 26, 26);
+    doc.text(`${s.score}/${s.max}`, W - M - 4, y + 2.5, { align: 'right' });
+
+    const barX = M + 4, barW = CW - 30;
+    doc.setFillColor(228, 222, 213);
+    doc.rect(barX, y + 5, barW, 3, 'F');
+    if (pct >= 0.7) doc.setFillColor(45, 90, 61);
+    else if (pct >= 0.4) doc.setFillColor(230, 126, 34);
+    else doc.setFillColor(192, 57, 43);
+    doc.rect(barX, y + 5, barW * pct, 3, 'F');
+
+    y += 14.5;
+  });
+
+  // ════════════════════════════════════════════════════
+  // PAGE 2 — Both priority areas + CTA
+  // ════════════════════════════════════════════════════
+  doc.addPage();
+  y = pageHeader('Your Priority Areas');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(26, 26, 26);
+  doc.text('Your Two Priority Areas', M, y + 3);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(110, 110, 110);
+  doc.text('Start with the "Do this first" action in each area — each is designed to take under an hour.', M, y + 3);
+  y += 9;
+
+  const colW = (CW - 6) / 2;
+  const colX = [M, M + colW + 6];
+  const colTop = y;
+  const colBottom = 248; // hard ceiling before the CTA footer begins at 250
+
+  lowestTwo.forEach((id, idx) => {
+    const sec = sections.find(s => s.id === id);
+    const score = scores.find(s => s.id === id);
+    const recs = recommendations[id];
+    const x = colX[idx];
+
+    // ── Pass 1: measure required height at default sizes ──
+    function measureHeight(dtfSize, titleSize, bodySize) {
+      let h = 15; // header band
+      const dtfLines = doc.splitTextToSize(doThisFirst[id], colW - 8);
+      h += 7 + dtfLines.length * (dtfSize * 0.5) + 5;
+      recs.forEach(r => {
+        const titleLines = doc.splitTextToSize(r.title, colW - 8);
+        const bLines = doc.splitTextToSize(r.body, colW - 7);
+        h += titleLines.length * (titleSize * 0.43) + 2 + bLines.length * (bodySize * 0.44) + 4;
+      });
+      return h;
+    }
+
+    // Try default size first; if it overflows the available column space,
+    // step down font sizes slightly until it fits. This guarantees no
+    // content is ever clipped, regardless of which two categories happen
+    // to be the priority areas for a given church.
+    const sizeSteps = [
+      { dtf: 7.8, title: 8.3, body: 7.5 },
+      { dtf: 7.4, title: 7.9, body: 7.1 },
+      { dtf: 7.0, title: 7.5, body: 6.8 },
+      { dtf: 6.6, title: 7.1, body: 6.5 }
+    ];
+    let chosen = sizeSteps[sizeSteps.length - 1];
+    for (const step of sizeSteps) {
+      if (measureHeight(step.dtf, step.title, step.body) <= (colBottom - colTop)) {
+        chosen = step;
+        break;
+      }
+    }
+
+    // ── Pass 2: render using the chosen size ──
+    let cy = colTop;
+
+    doc.setFillColor(26, 26, 26);
+    doc.rect(x, cy, colW, 12, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Priority ${idx + 1}: ${sec.title}`, x + 3, cy + 7.5, { maxWidth: colW - 22 });
+    doc.setFontSize(8);
+    doc.setTextColor(184, 148, 63);
+    doc.text(`${score.score}/${score.max}`, x + colW - 3, cy + 7.5, { align: 'right' });
+    cy += 15;
+
+    const dtfText = doThisFirst[id];
+    const dtfLines = doc.splitTextToSize(dtfText, colW - 8);
+    const dtfH = 7 + dtfLines.length * (chosen.dtf * 0.5);
+    doc.setFillColor(250, 240, 222);
+    doc.rect(x, cy, colW, dtfH, 'F');
+    doc.setFillColor(184, 148, 63);
+    doc.rect(x, cy, 1.2, dtfH, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.8);
+    doc.setTextColor(150, 110, 30);
+    doc.text('DO THIS FIRST — VERIFIABLE WITHIN THE HOUR', x + 3.5, cy + 4);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(chosen.dtf);
+    doc.setTextColor(60, 50, 30);
+    doc.text(dtfLines, x + 3.5, cy + 8);
+    cy += dtfH + 5;
+
+    recs.forEach((r, ri) => {
+      doc.setFillColor(232, 242, 236);
+      doc.roundedRect(x, cy, 5, 5, 0.8, 0.8, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(45, 90, 61);
+      doc.text(`${ri + 1}`, x + 1.7, cy + 3.6);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(chosen.title);
+      doc.setTextColor(26, 26, 26);
+      const titleLines = doc.splitTextToSize(r.title, colW - 8);
+      doc.text(titleLines, x + 7, cy + 3.6);
+      cy += titleLines.length * (chosen.title * 0.43) + 2;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(chosen.body);
+      doc.setTextColor(70, 70, 70);
+      const bLines = doc.splitTextToSize(r.body, colW - 7);
+      doc.text(bLines, x + 7, cy + 3);
+      cy += bLines.length * (chosen.body * 0.44) + 4;
+    });
+  });
+
+
+  // CTA footer, anchored to the bottom of page 2 regardless of column height
+  const ctaY = 250;
+  doc.setFillColor(26, 26, 26);
+  doc.rect(M, ctaY, CW, 32, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(250, 248, 244);
+  doc.text('Ready to go deeper?', M + 6, ctaY + 9);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(180, 180, 180);
+  const ctaText = 'A 45-minute discovery call can turn this into a prioritised growth roadmap — grounded in your context, not generic advice.';
+  doc.text(doc.splitTextToSize(ctaText, CW - 12), M + 6, ctaY + 15);
+
+  doc.setFillColor(184, 148, 63);
+  doc.rect(M + 6, ctaY + 22, 62, 7, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('waymarkforchurches@gmail.com', M + 9, ctaY + 26.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(180, 180, 180);
+  doc.text('Further reading: waymarkforchurches.substack.com', W - M - 6, ctaY + 26.5, { align: 'right' });
+
+  doc.save('waymark-church-growth-diagnostic.pdf');
+}
+</script>
+</body>
+</html>
